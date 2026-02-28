@@ -1,8 +1,10 @@
-# 🚀 PWT - PHP Web Terminal
+# ⚡ PHP Web Terminal - PWT
 
-> A lightweight, browser-based terminal for shared hosting environments where SSH/Terminal access is blocked.
+> A lightweight, browser-based terminal for shared hosting environments 
+> where SSH/Terminal access is blocked.
 
 ![PHP](https://img.shields.io/badge/PHP-8.x-blue?style=flat-square&logo=php)
+![Laravel](https://img.shields.io/badge/Laravel-10.x-red?style=flat-square&logo=laravel)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Hosting](https://img.shields.io/badge/Shared%20Hosting-Compatible-orange?style=flat-square)
 
@@ -10,120 +12,227 @@
 
 ## 📌 Background
 
-Most affordable shared hosting providers in Indonesia (and worldwide) 
-block SSH and Terminal access by default. This tool was built to solve 
-that problem — providing a real terminal experience directly through 
-the browser using PHP's execution functions.
+Most affordable shared hosting providers block SSH and Terminal access 
+by default. This tool was built to solve that — providing a real terminal 
+experience directly through the browser using PHP's execution functions.
+
+> Built & battle-tested on Indonesian shared hosting (cPanel, PHP 8.2, CloudLinux).
 
 ---
 
 ## ✨ Features
 
 - 🔐 **Password protected** login screen
-- 💻 **Real-time command execution** via AJAX (no page reload)
+- 💻 **Real-time AJAX execution** — no page reload
 - 📁 **`cd` navigation** with persistent directory across commands
-- 📜 **Unlimited command history** — scroll up to see previous output
+- 📜 **Unlimited scroll history** — scroll up to see all previous output
 - ⬆️⬇️ **Arrow key history** navigation (like real terminal)
-- 🎨 **Linux-like UI** (dark theme, green prompt)
-- 🧠 **Auto-scroll** to latest output
-- 🔄 **Fallback execution** — tries `proc_open`, `shell_exec`, `system`
-- 📦 **Composer & Git** compatible (if available on server)
+- 🎨 **Linux-like dark UI** with green prompt
+- 🔄 **Smart PHP CLI detection** — uses correct PHP binary, not web PHP
+- 📦 **Composer & Git & Laravel Artisan** compatible
 
 ---
 
 ## 📸 Preview
 
-> *(Work in progress)*
+> *(work in progress)*
 
 ---
 
 ## 🚀 Quick Start
 
 ### 1. Upload
-Upload `terminal.php` to your hosting's `public_html` folder via cPanel 
-File Manager or FTP.
+Upload `terminal.php` to your `public_html` via cPanel File Manager or FTP.
 
 ### 2. Set Password
-Open the file and change the password on **line 3**:
+Open the file and change on **line 3**:
 ```php
 define('PASS', 'your-secure-password');
 ```
 
 ### 3. Access
-Open in browser:
 ```
 https://yourdomain.com/terminal.php
 ```
 
-### 4. Login & Use
-Login with your password. Start running commands:
+---
+
+## 📦 Install Composer (No SSH Required)
+
+Since shared hosting blocks SSH, download Composer binary directly:
+
+### Step 1 — Find PHP CLI binary
 ```bash
-ls -la
-git status
+which php
+# or use full path:
+/opt/alt/php82/usr/bin/php --version
+```
+
+### Step 2 — Download Composer binary
+```bash
+curl -o composer.phar https://getcomposer.org/download/latest-stable/composer.phar
+```
+
+Or with wget:
+```bash
+wget -O composer.phar https://getcomposer.org/download/latest-stable/composer.phar
+```
+
+> ⚠️ **Do NOT use** `curl ... | php` or `php -r "copy(...)"` on shared hosting  
+> — it may execute via web PHP and output HTML instead of binary.
+
+### Step 3 — Verify
+```bash
+/opt/alt/php82/usr/bin/php composer.phar --version
+# Composer version 2.x.x
+```
+
+### Step 4 — Create alias (optional but recommended)
+```bash
+alias php='/opt/alt/php82/usr/bin/php'
+```
+
+Now you can use `php composer.phar` normally.
+
+---
+
+## 🏗️ Deploy Laravel on Shared Hosting
+
+Full workflow from zero to running Laravel — no SSH needed.
+
+### 1. Clone / Pull from Git
+```bash
+git clone https://github.com/username/your-laravel-repo.git .
+# or update existing:
 git pull origin main
-composer install
-pwd
-find /home/username -name "*project*"
 ```
 
----
-
-## 🔧 Requirements
-
-| Requirement | Minimum |
-|-------------|---------|
-| PHP | 5.6+ (tested on 8.2) |
-| Hosting | Shared/Cloud/VPS cPanel |
-| Functions | `shell_exec` or `proc_open` or `system` (any one) |
-
----
-
-## ⚙️ Supported Commands
-
-Since this runs as the web server user (`nobody` or `syathiby`), 
-you can run:
+### 2. Install Dependencies
 ```bash
-# Navigation
-ls, ls -la, pwd, cd /path/to/dir, find
-
-# Git
-git status, git pull origin main, git log --oneline
-
-# Composer
-composer install, composer update, composer dump-autoload
-
-# PHP
-php artisan migrate, php -v, php -m
-
-# Files
-cat file.php, chmod 755 folder/, mkdir newfolder
+COMPOSER_HOME=/home/username/.composer /opt/alt/php82/usr/bin/php composer.phar install --no-dev --optimize-autoloader
 ```
 
-> ⚠️ Commands like `sudo`, `apt`, `yum` won't work on shared hosting.
+> If `fileinfo` extension error, either:
+> - Enable via **cPanel → Select PHP Version → Extensions → fileinfo**
+> - Or add flag: `--ignore-platform-req=ext-fileinfo`
+
+### 3. Setup Environment
+```bash
+# Copy env file
+cp .env.example .env
+
+# Open and edit database config
+nano .env
+# or edit via cPanel File Manager
+```
+
+Edit these values:
+```env
+APP_NAME=YourApp
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://yourdomain.com
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=your_database
+DB_USERNAME=your_db_user
+DB_PASSWORD=your_db_password
+```
+
+### 4. Generate App Key
+```bash
+/opt/alt/php82/usr/bin/php artisan key:generate
+```
+
+### 5. Run Migration
+```bash
+/opt/alt/php82/usr/bin/php artisan migrate
+```
+
+With seeder:
+```bash
+/opt/alt/php82/usr/bin/php artisan migrate --seed
+```
+
+Fresh migration (reset all):
+```bash
+/opt/alt/php82/usr/bin/php artisan migrate:fresh --seed
+```
+
+### 6. Storage & Cache
+```bash
+# Link storage
+/opt/alt/php82/usr/bin/php artisan storage:link
+
+# Clear & optimize all cache
+/opt/alt/php82/usr/bin/php artisan optimize:clear
+/opt/alt/php82/usr/bin/php artisan optimize
+```
+
+### 7. Set Permissions
+```bash
+chmod -R 755 storage
+chmod -R 755 bootstrap/cache
+```
+
+---
+
+## 🔁 Daily Deploy Workflow
+
+After pushing code updates:
+
+```bash
+git pull origin main
+COMPOSER_HOME=/home/username/.composer /opt/alt/php82/usr/bin/php composer.phar install --no-dev --optimize-autoloader
+/opt/alt/php82/usr/bin/php artisan migrate
+/opt/alt/php82/usr/bin/php artisan optimize:clear
+/opt/alt/php82/usr/bin/php artisan optimize
+```
+
+---
+
+## 🟢 Node.js Deploy (Coming Soon)
+
+> Node.js workflow example will be added here, inshaAllah.
+
+---
+
+## ⚙️ Recommended PHP Extensions
+
+Enable these in **cPanel → Select PHP Version → Extensions**:
+
+```
+✅ fileinfo     ✅ mbstring     ✅ curl
+✅ zip          ✅ gd           ✅ pdo_mysql
+✅ opcache      ✅ xml          ✅ openssl
+✅ json         ✅ tokenizer    ✅ bcmath
+✅ ctype        ✅ intl         ✅ sodium
+```
 
 ---
 
 ## 🛡️ Security
 
-> **IMPORTANT:** This file gives command-line access to your server.
+> ⚠️ This file provides command-line access to your server. Handle with care.
 
 Best practices:
-- ✅ Use a **strong, unique password**
-- ✅ **Delete or rename** the file after use
-- ✅ Move to a **hidden directory** (e.g., `/assets/tools/`)
-- ✅ Whitelist your IP via `.htaccess`:
+- ✅ Use a **strong unique password**
+- ✅ **Delete the file** after deployment is done
+- ✅ Move to a **hidden path** (e.g. `/private/tools/`)
+- ✅ Restrict by IP via `.htaccess`:
 
 ```apache
-# .htaccess (same folder as terminal.php)
 <Files "terminal.php">
   Order Deny,Allow
   Deny from all
-  Allow from YOUR.IP.ADDRESS.HERE
+  Allow from YOUR.IP.ADDRESS
 </Files>
 ```
 
-- ❌ Never commit with password exposed
-- ❌ Never leave accessible on production server long-term
+- ❌ Never expose on production long-term
+- ❌ Never commit with password in plain text
 
 ---
 
@@ -131,27 +240,19 @@ Best practices:
 
 ```
 php-web-terminal/
-├── terminal.php        # Main terminal file (single file app)
-├── term.log            # Command history log (auto-created)
+├── terminal.php     # Single-file web terminal (AJAX-based)
+├── term.log         # Command history log (auto-created, gitignored)
 └── README.md
 ```
 
 ---
 
-## 🌐 Use Cases
+## 🌐 Tested On
 
-- Run `composer install` on shared hosting without SSH
-- Execute `git pull` for quick deployments
-- Debug file permissions and directory structure
-- Navigate addon domain folders in cPanel
-- Run PHP Artisan commands for Laravel on shared hosting
-
----
-
-## 🧑‍💻 Built with 💚
-
-> Built as a real-world solution for managing multiple hosting accounts 
-> without SSH access — tested on Indonesian hosting providers.
+| Hosting | PHP | Status |
+|---------|-----|--------|
+| Indonesian Shared Hosting (cPanel) | 8.2 | ✅ Working |
+| CloudLinux + cPanel | 8.2 | ✅ Working |
 
 ---
 
@@ -163,6 +264,4 @@ MIT License — Free to use, modify, and distribute.
 
 ## ⭐ Support
 
-If this helped you, give a ⭐ star on GitHub!  
-It motivates me to build more open-source tools.
-```
+If this helped you, give it a ⭐ on GitHub!
